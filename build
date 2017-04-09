@@ -1,0 +1,54 @@
+#!/bin/bash
+set -e
+
+if [ $# -eq 0 ]; then
+  >&2 echo -e "\033[1mFailed to build:\033[0m Supply the Hugo version in your command\n\n" \
+    "Example: ./build 0.19\n"
+  exit 1
+fi
+
+VERSION="$1"
+
+VERSION_REGEX="^([0-9]*)\.([0-9]*)(\.([0-9]+((-|.)[^ ]*)?))?$"
+if [[ "$VERSION" =~ $VERSION_REGEX ]]; then
+  MAJOR_VERSION="${BASH_REMATCH[1]}"
+  MINOR_VERSION="${BASH_REMATCH[2]}"
+  PATCH_VERSION="${BASH_REMATCH[4]}"
+else
+  >&2 echo -e "\033[1mFailed to build:\033[0m Invalid Hugo version supplied\n\n" \
+    "Example: ./build 0.19\n"
+  exit 1
+fi
+
+# Remove assets from prior releases
+find build-assets ! -name 'Dockerfile' -type f -exec rm -f {} +
+
+if [ $MAJOR_VERSION -gt 0 ] || [ $MINOR_VERSION -gt 16 ]; then
+  curl -sL https://github.com/spf13/hugo/releases/download/v${VERSION}/hugo_${VERSION}_Linux-64bit.tar.gz \
+    | tar xfz - --strip-components=1 -C build-assets/
+elif [ $MAJOR_VERSION -eq 0 ] && [ $MINOR_VERSION -gt 15 ]; then
+  curl -sL https://github.com/spf13/hugo/releases/download/v${VERSION}/hugo_${VERSION}_linux-64bit.tgz \
+    | tar xfz - --strip-components=1 -C build-assets/
+elif [ $MAJOR_VERSION -eq 0 ] && [ $MINOR_VERSION -gt 9 ]; then
+  curl -sL https://github.com/spf13/hugo/releases/download/v${VERSION}/hugo_${VERSION}_linux_amd64.tar.gz \
+    | tar xfz - --strip-components=1 -C build-assets/
+else
+  >&2 echo -e "\033[1mFailed to build:\033[0m Hugo versions prior to 0.10 are not supported\n"
+  exit 1
+fi
+
+# Handle inconsistent binary names
+mv build-assets/hugo* build-assets/hugo
+
+cd build-assets
+
+echo -e "Building Docker image tag \033[1m$VERSION\033[0m"
+docker build -t codycraven/hugo:$VERSION .
+
+LAST_HUGO_TAG=$( curl -sL https://api.github.com/repos/spf13/hugo/tags | sed -n '3p' )
+TAG_STRING_REGEX="\"v$VERSION\",$"
+if [[ ! "$LAST_HUGO_TAG" =~ $TAG_STRING_REGEX ]]; then
+  exit
+fi
+echo -e "\n\033[1mIMPORTANT!\033[0m Detected \033[1m$VERSION\033[0m is the most recent tag -" \
+  "changes should be committed and pushed to GitHub to trigger automated Docker Hub build of latest tag"
