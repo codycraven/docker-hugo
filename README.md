@@ -12,7 +12,9 @@
 * `0.17`
 * `0.18`
 * `0.18.1`
-* [`0.19`, `latest` _(build-assets/Dockerfile)_](https://github.com/codycraven/docker-hugo/blob/master/build-assets/Dockerfile)
+* `0.19`
+* `0.20`
+* [`0.20.1`, `latest` _(build-assets/Dockerfile)_](https://github.com/codycraven/docker-hugo/blob/master/build-assets/Dockerfile)
 
 ## Usage
 
