@@ -16,19 +16,37 @@
 
 ## Usage
 
-### Setup an alias
+### Setup aliases for dockerized Hugo
 
-Create an alias to run Hugo in a Docker container (to avoid lots of typing):
+Define a couple aliases in your .bashrc (or other relevant location) to run Hugo in a Docker container.
+
+_Note: You can pin your alias to a specific release by appending `codycraven/hugo` with the Docker tag. Example: `codycraven/hugo:0.18.1`_
+
+#### hugo
 
 ```bash
-alias hugo='docker run --rm -it -p 1313:1313 -v $(pwd):/site -w /site codycraven/hugo'
+alias hugo='docker run --rm -it \
+    -v /tmp:/tmp:Z \
+    -v $(pwd):/site:Z \
+    -w /site \
+    codycraven/hugo'
 ```
 
-Notes:
+#### hugo-server
 
-* Be sure to also place this in your .bashrc (or other relevant location) so that you will not need to redefine it each time you open a new terminal.
-* If you want to use a port other than 1313 then be sure to change `-p 1313:1313` to your desired value, such as `-p 8080:8080`.
-* You can pin your alias to a specific release by appending `codycraven/hugo` with the Docker tag. Example: `codycraven/hugo:0.18.1`
+```bash
+alias hugo-server='docker run --rm -it \
+    -v /tmp:/tmp:Z \
+    -v $(pwd):/site:Z -w /site \
+    -p 8080:8080 \
+    codycraven/hugo \
+    server \
+    --bind=0.0.0.0 \
+    --port=8080 \
+    -w'
+```
+
+_Note: To set the port of your development site, change all three instances of `8080` to whatever port you'd like to use._
 
 ### View help
 
@@ -52,16 +70,8 @@ _This will create a new directory under your current directory with the name of 
 
 ### Hugo server
 
-Run Hugo with [LiveReload](https://gohugo.io/extras/livereload/) on [localhost port 1313](http://localhost:1313):
-
 ```bash
-hugo server --bind=0.0.0.0 -w
-```
-
-Run Hugo on a custom port (be sure to change your alias to match the port) with LiveReload:
-
-```bash
-hugo server --bind=0.0.0.0 --port=8080 -w
+hugo-server
 ```
 
 ### Build static files for deployment
