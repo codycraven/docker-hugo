@@ -38,7 +38,9 @@ else
 fi
 
 # Handle inconsistent binary names
-mv build-assets/hugo* build-assets/hugo
+if [ ! -f build-assets/hugo ]; then
+  mv build-assets/hugo* build-assets/hugo
+fi
 
 cd build-assets
 
